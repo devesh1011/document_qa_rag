@@ -25,7 +25,7 @@ cffi==1.17.1
 chardet==5.2.0
 charset-normalizer==3.4.0
 chroma-hnswlib==0.7.6
-chromadb==0.5.23
+chromadb==0.5.23  # Keep this if necessary
 click==8.1.7
 coloredlogs==15.0.1
 comm==0.2.2
@@ -214,3 +214,4 @@ transformers==4.47.1
 triton==3.1.0
 tzdata==2024.2
 watchdog==6.0.0
+tokenizers==0.20.3 
