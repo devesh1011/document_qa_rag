@@ -11,6 +11,9 @@ import streamlit as st
 import datetime
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.load import loads, dumps
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 load_dotenv()
 
