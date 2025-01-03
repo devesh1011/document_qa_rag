@@ -9,8 +9,22 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 import streamlit as st
 import datetime
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.load import loads, dumps
 
 load_dotenv()
+
+# st.write(
+#     "Has environment variables been set:",
+#     os.environ["OPENAI_API_KEY"] == st.secrets["openai_api_key"],
+# )
+
+template = """You are an AI language model assistant. Your task is to generate five 
+different versions of the given user question to retrieve relevant documents from a vector 
+database. By generating multiple perspectives on the user question, your goal is to help
+the user overcome some of the limitations of the distance-based similarity search. 
+Provide these alternative questions separated by newlines. Original question: {question}"""
+prompt_perspectives = ChatPromptTemplate.from_template(template)
 
 
 def save_uploaded_file(uploaded_file):
@@ -40,7 +54,7 @@ def split_and_save_docs(docs):
 
 
 def get_vector_store(chunks):
-    embeddings = OpenAIEmbeddings(api_key=os.environ.get("OPENAI_API_KEY"))
+    embeddings = OpenAIEmbeddings(api_key=st.secrets["openai_api_key"])
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
@@ -49,18 +63,63 @@ def get_vector_store(chunks):
     return vectorstore
 
 
+def get_unique_union(documents: list[list]):
+    """Unique union of retrieved docs"""
+    # Flatten list of lists, and convert each Document to string
+    flattened_docs = [dumps(doc) for sublist in documents for doc in sublist]
+    # Get unique documents
+    unique_docs = list(set(flattened_docs))
+    # Return
+    return [loads(doc) for doc in unique_docs]
+
+
+def multi_query_chain(question: str):
+    """Generate multiple versions of the user question for better retrieval."""
+    return (
+        prompt_perspectives
+        | ChatOpenAI(
+            temperature=0.1, model="gpt-4", api_key=st.secrets["openai_api_key"]
+        )
+        | StrOutputParser()
+        | (lambda x: x.split("\n"))
+    )
+
+
 def conversational_chain(retriever):
+    """Create a conversational chain with multi-query retrieval."""
     prompt = hub.pull("rlm/rag-prompt")
+
+    # Define the multi-query chain
+    multi_query = RunnablePassthrough() | (
+        lambda x: multi_query_chain(x)
+    )  # Pass the question directly
+
+    # Combine multi-query with retriever and unique union
+    retrieval_chain = multi_query | retriever.map() | get_unique_union
+
+    # Define the LLM and final RAG chain
     llm = ChatOpenAI(
-        temperature=0.1, model="gpt-4", api_key=os.environ.get("OPENAI_API_KEY")
+        temperature=0.1, model="gpt-4", api_key=st.secrets["openai_api_key"]
     )
     rag_chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        {"context": retrieval_chain | format_docs, "question": RunnablePassthrough()}
         | prompt
         | llm
         | StrOutputParser()
     )
     return rag_chain
+
+
+def multi_query_chain(question: str):
+    """Generate multiple versions of the user question for better retrieval."""
+    return (
+        prompt_perspectives
+        | ChatOpenAI(
+            temperature=0.1, model="gpt-4", api_key=st.secrets["openai_api_key"]
+        )
+        | StrOutputParser()
+        | (lambda x: x.split("\n"))
+    )
 
 
 def clear_chat_history():
