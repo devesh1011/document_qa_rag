@@ -116,3 +116,27 @@ websockets==14.1
 wrapt==1.17.0
 yarl==1.18.3
 zipp==3.21.0
+## The following requirements were added by pip freeze:
+altair==5.5.0
+blinker==1.9.0
+gitdb==4.0.12
+GitPython==3.1.44
+Jinja2==3.1.5
+jsonschema==4.23.0
+jsonschema-specifications==2024.10.1
+MarkupSafe==3.0.2
+narwhals==1.20.1
+pandas==2.2.3
+pillow==11.1.0
+pyarrow==18.1.0
+pydeck==0.9.1
+pypdf==5.1.0
+pytz==2024.2
+referencing==0.35.1
+rpds-py==0.22.3
+smmap==5.0.2
+streamlit==1.41.1
+toml==0.10.2
+tornado==6.4.2
+tzdata==2024.2
+watchdog==6.0.0
