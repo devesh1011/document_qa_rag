@@ -139,6 +139,4 @@ toml==0.10.2
 tornado==6.4.2
 tzdata==2024.2
 watchdog==6.0.0
-pysqlite3==0.5.4
-pysqlite3-binary==0.5.4
 SQLAlchemy==2.0.36
