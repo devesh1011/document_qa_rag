@@ -21,6 +21,7 @@ the user overcome some of the limitations of the distance-based similarity searc
 Provide these alternative questions separated by newlines. Original question: {question}"""
 prompt_perspectives = ChatPromptTemplate.from_template(template)
 
+
 def save_uploaded_file(uploaded_file):
     data_dir = "data/"
     os.makedirs(data_dir, exist_ok=True)
@@ -30,21 +31,25 @@ def save_uploaded_file(uploaded_file):
         f.write(uploaded_file.getbuffer())
     return file_path
 
+
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
+
 
 def load_docs(filepath):
     loader = PyPDFLoader(filepath)
     docs = loader.load()
     return docs
 
+
 def split_and_save_docs(docs):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     chunks = text_splitter.split_documents(docs)
     return chunks
 
+
 def get_vector_store(chunks):
-    embeddings = OpenAIEmbeddings(api_key=os.environ.get("OPENAI_API_KEY"))
+    embeddings = OpenAIEmbeddings(api_key=st.write("openai_api_key"))
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
@@ -52,11 +57,12 @@ def get_vector_store(chunks):
     )
     return vectorstore
 
+
 def conversational_chain(retriever):
     prompt = hub.pull("rlm/rag-prompt")
 
     llm = ChatOpenAI(
-        temperature=0.1, model="gpt-4o", api_key=os.environ.get("OPENAI_API_KEY")
+        temperature=0.1, model="gpt-4o", api_key=st.write("openai_api_key")
     )
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -66,10 +72,12 @@ def conversational_chain(retriever):
     )
     return rag_chain
 
+
 def clear_chat_history():
     st.session_state.messages = [
         {"role": "assistant", "content": "Upload some PDFs and ask me a question."}
     ]
+
 
 def main():
     st.set_page_config(page_title="Conversational PDF Chatbot", page_icon="🤖")
@@ -134,6 +142,7 @@ def main():
                         "content": "Please upload a PDF file and process it before asking questions.",
                     }
                 )
+
 
 if __name__ == "__main__":
     main()
