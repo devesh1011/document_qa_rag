@@ -49,7 +49,7 @@ def split_and_save_docs(docs):
 
 
 def get_vector_store(chunks):
-    embeddings = OpenAIEmbeddings(api_key=st.write("OPENAI_API_KEY"))
+    embeddings = OpenAIEmbeddings(api_key=st.secrets.get("OPENAI_API_KEY"))
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
@@ -62,7 +62,7 @@ def conversational_chain(retriever):
     prompt = hub.pull("rlm/rag-prompt")
 
     llm = ChatOpenAI(
-        temperature=0.1, model="gpt-4o", api_key=st.write("OPENAI_API_KEY")
+        temperature=0.1, model="gpt-4o", api_key=st.secrets.get("OPENAI_API_KEY")
     )
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
