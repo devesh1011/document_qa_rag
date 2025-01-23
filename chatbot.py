@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_nvidia_ai_endpoints import ChatNVIDIA, NVIDIAEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader
@@ -49,7 +49,7 @@ def split_and_save_docs(docs):
 
 
 def get_vector_store(chunks):
-    embeddings = OpenAIEmbeddings(api_key=st.secrets.get("OPENAI_API_KEY"))
+    embeddings = NVIDIAEmbeddings(api_key=st.secrets.get("NVIDIA_API_KEY"))
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
@@ -61,8 +61,12 @@ def get_vector_store(chunks):
 def conversational_chain(retriever):
     prompt = hub.pull("rlm/rag-prompt")
 
-    llm = ChatOpenAI(
-        temperature=0.1, model="gpt-4o", api_key=st.secrets.get("OPENAI_API_KEY")
+    llm = ChatNVIDIA(
+        model="meta/llama-3.1-70b-instruct",
+        api_key=st.secrets.get("NVIDIA_API_KEY"),
+        temperature=0.2,
+        top_p=0.7,
+        max_tokens=1024,
     )
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
